@@ -43,8 +43,9 @@ var (
 	sxServerAddress string
 	mapboxToken     string
 
-	colormap       map[int][3]uint8
+	colormap       map[int][4]uint8
 	eventTimestamp map[int]time.Time
+	startTime      time.Time
 )
 
 // const (
@@ -71,10 +72,12 @@ const (
 
 func init() {
 	eventTimestamp = make(map[int]time.Time)
-	colormap = make(map[int][3]uint8)
-	colormap[1] = [3]uint8{254, 0, 0}
-	colormap[2] = [3]uint8{0, 255, 0}
-	colormap[3] = [3]uint8{0, 0, 255}
+	colormap = make(map[int][4]uint8)
+	colormap[1] = [4]uint8{254, 0, 0, 255}
+	colormap[2] = [4]uint8{0, 255, 0, 255}
+	colormap[3] = [4]uint8{0, 0, 255, 255}
+	colormap[4] = [4]uint8{0, 255, 255, 255}
+	startTime = time.Now()
 }
 
 // assetsFileHandler for static Data
@@ -462,6 +465,12 @@ type TripsOpt struct {
 	Color [3]uint8     `json:"color"`
 }
 
+type PathOpt struct {
+	ID    int          `json:"id"`
+	Data  [][3]float64 `json:"data"`
+	Color [4]uint8     `json:"color"`
+}
+
 func supplyMqttCallback(clt *sxutil.SXServiceClient, sp *api.Supply) {
 	//	log.Printf("Agent: %v", *sp)
 	var rcd = mqtt.MQTTRecord{}
@@ -479,23 +488,26 @@ func supplyMqttCallback(clt *sxutil.SXServiceClient, sp *api.Supply) {
 			if err != nil {
 				log.Print(err)
 			}
-			var trip TripsOpt
+			var pathOpt PathOpt
 			for _, pos := range path.Poses {
-				lat := float64(latBase + 0.0001*(pos.Pose.Position.Y/yscale))
-				lon := float64(lonBase + 0.0001*(pos.Pose.Position.X/xscale))
-				ts := int64(pos.Header.Stamp.Secs)
-				trip.Path = append(trip.Path, [2]float64{lat, lon})
-				trip.Ts = append(trip.Ts, ts)
+				lat := float64(latBase + 0.0001*(pos.Pose.Position.X/xscale))
+				lon := float64(lonBase + 0.0001*(pos.Pose.Position.Y/yscale))
+				ts := time.Unix(int64(pos.Header.Stamp.Secs), int64(pos.Header.Stamp.Nsecs)).Sub(startTime).Seconds()
+				pathOpt.Data = append(pathOpt.Data, [3]float64{lat, lon, ts})
+				pathOpt.ID = id
 			}
 			if val, ok := colormap[id]; ok {
-				trip.Color = val
+				pathOpt.Color = val
 			} else {
-				trip.Color = [3]uint8{255, 255, 0}
+				pathOpt.Color = [4]uint8{255, 255, 0, 255}
 			}
-			jsonBytes, err := json.Marshal(trip)
-			jstr := fmt.Sprintf("{ \"ts\": %d.%03d, \"dt\": %s}", seconds, int(nanos/1000000), string(jsonBytes))
+			jsonBytes, err := json.Marshal(pathOpt)
+			if err != nil {
+				log.Print(err)
+			}
+			//jstr := fmt.Sprintf("{ \"ts\": %d.%03d, \"dt\": %s}", seconds, int(nanos/1000000), string(jsonBytes))
 			mu.Lock()
-			ioserv.BroadcastToAll("trips", jstr)
+			ioserv.BroadcastToAll("path", jsonBytes)
 			mu.Unlock()
 		} else if strings.HasPrefix(rcd.Topic, "robot/position") {
 			var id int
