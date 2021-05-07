@@ -3,6 +3,7 @@ module harmovis-glTFmap
 go 1.13
 
 require (
+	github.com/fukurin00/go_ros_msg v0.0.2
 	github.com/golang/protobuf v1.4.2
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/mtfelian/golang-socketio v1.5.2
