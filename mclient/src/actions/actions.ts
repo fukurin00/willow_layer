@@ -4,6 +4,7 @@ import { GridType } from '../constants/MapSettings'
 import { BarData } from '../constants/bargraph'
 import { BalloonInfo } from '../constants/informationBalloon'
 import { Line } from '../constants/line'
+import { Path } from '../constants/path'
 import { Arc, Scatter, LabelInfo} from '../constants/geoObjects'
 
 const actionCreator = actionCreatorFactory()
@@ -35,6 +36,9 @@ export const addGeoJsonData = actionCreator<string>('ADD_GEOJSON_DATA');
 
 // line
 export const addLineData = actionCreator<Line[]>('ADD_LINE_DATA');
+
+// path
+export const addPathData = actionCreator<Path[]>('ADD_PATH_DATA');
 
 // arc
 export const addArcData = actionCreator<Arc[]>('ADD_ARC_DATA');

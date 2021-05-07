@@ -12,7 +12,7 @@ import {
 // import { StaticMap,  } from 'react-map-gl';
 //import { Layer } from '@deck.gl/core'
 
-import {GeoJsonLayer, LineLayer, ArcLayer, ScatterplotLayer} from '@deck.gl/layers'
+import {GeoJsonLayer, LineLayer, ArcLayer, ScatterplotLayer, PathLayer} from '@deck.gl/layers'
 import { CubeGeometry } from '@luma.gl/engine'
 
 const CUBE_POSITIONS = new Float32Array([
@@ -36,6 +36,7 @@ import store from '../store'
 import { BarData } from '../constants/bargraph'
 import { MeshItem } from '../constants/meshdata'
 import { Line } from '../constants/line'
+import{Path} from '../constants/path'
 import { Arc, Scatter } from '../constants/geoObjects'
 
 import InfomationBalloonLayer from './InfomationBalloonLayer'
@@ -44,7 +45,7 @@ import { BalloonInfo, BalloonItem } from '../constants/informationBalloon'
 import { AgentData } from '../constants/agent'
 import { isMapboxToken, isBarGraphMsg, isAgentMsg, isLineMsg, isGeoJsonMsg,
 		isPitchMsg, isBearingMsg, isClearMovesMsg, isViewStateMsg, isArcMsg,
-		isClearArcMsg, isScatterMsg, isClearScatterMsg, isLabelInfoMsg, isHarmoVISConfMsg
+		isClearArcMsg, isScatterMsg, isClearScatterMsg, isLabelInfoMsg, isHarmoVISConfMsg, isPathMsg
 	} from '../constants/workerMessageTypes'
 import  TopTextLayer  from '../components/TopTextLayer'
 
@@ -78,6 +79,8 @@ class App extends Container<any,any> {
 				self.getAgents(msg.payload)
 			} else if (isLineMsg(msg)) {
 				self.getLines(msg.payload)
+			} else if (isPathMsg(msg)) {
+				self.getPath(msg.payload)
 			} else if (isGeoJsonMsg(msg)) {
 				self.getGeoJson(msg.payload)
 			} else if (isPitchMsg(msg)) {
@@ -447,6 +450,9 @@ class App extends Container<any,any> {
 	}
 
 
+	getPath(data: Path[]) {
+		store.dispatch(actions.addPathData(data))
+	}
 
 
 	getLines (data :Line[]) {
@@ -698,7 +704,7 @@ class App extends Container<any,any> {
 
 	render () {
 		const props = this.props
-		const { actions, clickedObject, inputFileName, viewport, deoptsData, loading, lines, arcs, scatters, geojson,
+		const { actions, clickedObject, inputFileName, viewport, deoptsData, loading, lines,paths, arcs, scatters, geojson,
 			arcVisible, scatterVisible, scatterFill, scatterMode, 
 			routePaths, lightSettings, movesbase, movedData, mapStyle ,extruded, gridSize,gridHeight, enabledHeatmap, selectedType,
 			widthRatio, heightRatio, radiusRatio, showTitle, infoBalloonList,  settime, titlePosOffset, titleSize,
@@ -815,6 +821,8 @@ class App extends Container<any,any> {
 					widthMinPixels: 0.5
 				})
 
+
+
 /*
 				new LineMapLayer({
 					data: lines,
@@ -827,6 +835,19 @@ class App extends Container<any,any> {
 
 			)
 
+		}
+
+		if (paths.length > 0) {
+			layers.push(
+				new PathLayer({
+					visible: true,
+					data: paths,
+					getPath: (d: any) => d.data,
+					getColor: (d: any) => d.color,
+					getWidth: 1.0,
+					widthMinPixels: 0.5
+				})
+			)
 		}
 
 		if (arcs.length > 0) {

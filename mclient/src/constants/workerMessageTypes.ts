@@ -1,6 +1,7 @@
 import { AgentData } from "./agent";
 import { BarData } from "./bargraph";
 import { Line } from "./line";
+import { Path } from "./path";
 import { Arc, Scatter , LabelInfo} from "./geoObjects";
 
 export interface WorkerMessage {
@@ -19,6 +20,9 @@ export const isAgentMsg = (msg: WorkerMessage): msg is SocketMessage<AgentData> 
 }
 export const isLineMsg = (msg: WorkerMessage): msg is SocketMessage<Line[]> => {
     return msg.type === 'RECEIVED_LINES'
+}
+export const isPathMsg = (msg: WorkerMessage): msg is SocketMessage<Path[]> => {
+    return msg.type === 'RECEIVED_PATH'
 }
 export const isGeoJsonMsg = (msg: WorkerMessage): msg is SocketMessage<string> => {
     return msg.type === 'RECEIVED_GEOJSON'
@@ -64,7 +68,8 @@ export const isHarmoVISConfMsg = (msg: WorkerMessage): msg is SocketMessage<any>
 
 export type SocketMsgTypes = 'RECEIVED_AGENT'| 'CONNECTED'| 'RECEIVED_MAPBOX_TOKEN'
      | 'RECEIVED_BAR_GRAPHS'
-     | 'RECEIVED_LINES'
+    | 'RECEIVED_LINES'
+    | 'RECEIVED_PATH'
      | 'RECEIVED_GEOJSON'
      | 'RECEIVED_PITCH'
      | 'RECEIVED_BEARING'

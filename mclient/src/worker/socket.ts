@@ -5,7 +5,8 @@ import { BarData } from '../constants/bargraph';
 import { AgentData } from '../constants/agent';
 import { Line } from '../constants/line';
 import { SocketMessage } from '../constants/workerMessageTypes';
-import { Arc, Scatter, LabelInfo} from '../constants/geoObjects';
+import { Arc, Scatter, LabelInfo } from '../constants/geoObjects';
+import {Path} from '../constants/path'
 const socket = io();
 
 var wcounter = 0
@@ -126,7 +127,14 @@ function color2array(col:number) : number[] {
 
 
 function startRecivedData() {
-
+    socket.on('path', (str: string) => {
+        console.log('path:' + str.length);
+        const payload: Path = JSON.parse(str);
+        worker.postMessage({
+            type: 'RECEIVED_PATH',  
+            payload
+        } as SocketMessage<Path>)
+    })
     socket.on('bargraphs', (str: string) => {
         console.log('Bargraphs:' + str.length)
         const rawData = JSON.parse(str);

@@ -2,6 +2,7 @@ import { isType } from 'typescript-fsa'
 import { Action } from 'redux'
 import * as actions from '../actions/actions'
 import { Line } from '../constants/line'
+import { Path } from '../constants/path'
 import { Arc, Scatter} from '../constants/geoObjects'
 
 export interface LineLayerState {
@@ -10,6 +11,14 @@ export interface LineLayerState {
 
 const initialLineState: LineLayerState  = {
     lines: []
+}
+
+export interface PathLayerState {
+  paths: Path[]
+}
+
+const initialPathState: PathLayerState  = {
+  paths: []
 }
 
 export interface GeoJsonState {
@@ -82,6 +91,17 @@ export const lineSettings = (state = initialLineState, action: Action): LineLaye
     return {
       ...state,
       lines: action.payload   // may concatenate...
+    }
+  }
+  return state
+}
+
+export const PathSettings = (state = initialPathState, action: Action): PathLayerState => {
+  if (isType(action, actions.addPathData)) {
+    console.log("add paths!"+action.payload.length)
+    return {
+      ...state,
+      paths: action.payload   // may concatenate...
     }
   }
   return state
